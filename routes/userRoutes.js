@@ -1,6 +1,7 @@
 const express = require("express");
 const routes = express.Router();
 const bcrypt = require("bcryptjs");
+var jwt = require("jsonwebtoken");
 const knex = require("knex");
 const knexConfig = require("../knexfile").development;
 const db = knex(knexConfig);
@@ -32,7 +33,7 @@ routes.use(express.json());
  *     }
  */
 
-routes.post("/", (req, res) => {
+routes.post("/register", (req, res) => {
   let { username, password, department } = req.body;
   if (username && password && department) {
     password = bcrypt.hashSync(password, 10);
@@ -45,11 +46,43 @@ routes.post("/", (req, res) => {
         res.status(400).json({ error, message: "Username already taken" });
       });
   } else {
-    res.status(400).json({ message: "Include a username, password and department" });
+    res
+      .status(400)
+      .json({ message: "Include a username, password and department" });
   }
 });
 
-routes.post("/api/login", (req, res) => {});
+function makeTokenFromId(id) {
+  const payload = {
+    subject: id
+  };
+  const options = {
+    expiresIn: "1h"
+  };
+  const token = jwt.sign(payload, "secret", options);
+  return token;
+}
+
+routes.post("/login", (req, res) => {
+  let { username, password } = req.body;
+  if (username && password) {
+    db("users")
+      .where({ username })
+      .first()
+      .then(user => {
+        if (user && bcrypt.compareSync(password, user.password)) {
+          const token = makeTokenFromId(user.id);
+          res.status(200).json({
+            token
+          });
+        } else {
+          res.status(401).json({ message: "Invalid Credentials" });
+        }
+      });
+  } else {
+    res.status(401).json({ message: "Username and password required" });
+  }
+});
 
 routes.get("/api/users", (req, res) => {});
 
