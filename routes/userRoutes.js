@@ -84,6 +84,34 @@ routes.post("/login", (req, res) => {
   }
 });
 
-routes.get("/api/users", (req, res) => {});
+// auth mw
+
+const restrict = (req, res, next) => {
+  const { token } = req.body;
+  if (token) {
+    jwt.verify(token, "secret", (error, decocedToken) => {
+      if (error) {
+        res.status(400).json({ message: "Not valid credentials provided" });
+      } else {
+        const id = decocedToken.subject;
+        db("users")
+          .where({ id })
+          .first()
+          .then(user => {
+            req.user = user;
+            console.log(user);
+            next();
+          })
+          .catch(error => {
+            res.status(400).json({ message: "Not valid credentials provided" });
+          });
+      }
+    });
+  } else {
+    res.status(400).json({ message: "No credentials provided" });
+  }
+};
+
+routes.get("/users", restrict, (req, res) => {});
 
 module.exports = routes;
