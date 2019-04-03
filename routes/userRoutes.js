@@ -99,7 +99,6 @@ const restrict = (req, res, next) => {
           .first()
           .then(user => {
             req.user = user;
-            console.log(user);
             next();
           })
           .catch(error => {
@@ -112,6 +111,19 @@ const restrict = (req, res, next) => {
   }
 };
 
-routes.get("/users", restrict, (req, res) => {});
+routes.get("/users", restrict, (req, res) => {
+  if (req.user.department === "PM") {
+    db.select(["username", "department"])
+      .from("users")
+      .then(users => {
+        res.status(200).json(users);
+      })
+      .catch(error => {
+        res.status(500).json({ message: "server error" });
+      });
+  } else {
+    res.status(401).json("You don't have the power!!!!");
+  }
+});
 
 module.exports = routes;
