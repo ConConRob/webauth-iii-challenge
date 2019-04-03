@@ -1,4 +1,8 @@
-const server = require("./server.js")
+const server = require("./server.js");
+
+const userRoutes = require("./routes/userRoutes");
+
+server.use("/api/register",userRoutes)
 
 const port = 4050;
 server.listen(port, function() {
