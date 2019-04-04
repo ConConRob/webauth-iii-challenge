@@ -28,8 +28,13 @@ export default function Register(props) {
 
   const [errorMessage, SetErrorMessage] = useState("");
   const [successMessage, SetSuccessMessage] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   function register() {
+    if (isRegistering) {
+      return null;
+    }
+    setIsRegistering(true)
     // reset messages
     SetErrorMessage("");
     SetSuccessMessage("");
@@ -39,11 +44,11 @@ export default function Register(props) {
     axios
       .post(`${URL}register`, { username, password, department })
       .then(res => {
-        SetSuccessMessage(res.data.message)
+        SetSuccessMessage(res.data.message);
       })
       .catch(error => {
         SetErrorMessage(error.message);
-      });
+      }).finally(()=> setIsRegistering(false));
   }
 
   return (

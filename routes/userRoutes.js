@@ -87,7 +87,8 @@ routes.post("/login", (req, res) => {
 // auth mw
 
 const restrict = (req, res, next) => {
-  const { token } = req.body;
+  const token = req.header('Authorization')
+  console.dir(token)
   if (token) {
     jwt.verify(token, "secret", (error, decocedToken) => {
       if (error) {
@@ -112,6 +113,7 @@ const restrict = (req, res, next) => {
 };
 
 routes.get("/users", restrict, (req, res) => {
+  console.log("here")
   if (req.user.department === "PM") {
     db.select(["username", "department"])
       .from("users")
